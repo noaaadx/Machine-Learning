@@ -1,0 +1,15 @@
+* Aspectos Clave:
+
+ - Error en el conjunto de entrenamiento:
+ - Error en el conjunto de prueba:
+
+La forma de la curva de aprendizaje puede variar según diversos factores, como la complejidad del modelo, 
+la calidad de los datos, la presencia de sobreajuste o subajuste , entre otros.
+
+. Sobreajuste (Overfitting):
+Si el modelo tiene un rendimiento excelente en el conjunto de entrenamiento pero no generaliza bien en datos no vistos (conjunto de prueba), puede indicar sobreajuste.
+En este caso, agregar más datos de entrenamiento puede ayudar a mejorar la generalización.
+
+.Subajuste (Underfitting):
+Si el modelo tiene un rendimiento deficiente tanto en el conjunto de entrenamiento como en el conjunto de prueba, puede indicar subajuste.
+En este caso, puede ser necesario utilizar un modelo más complejo o ajustar los parámetros del modelo.
