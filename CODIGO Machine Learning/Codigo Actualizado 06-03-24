@@ -1,0 +1,79 @@
+import numpy as np
+import pandas as pd
+from keras.models import Sequential
+from keras.layers import Dense, Dropout
+from numpy import mean, square, subtract
+from tensorflow.keras.optimizers import Adam
+import tensorflow as tf
+import matplotlib.pyplot as plt
+
+# Set random seeds for reproducibility
+np.random.seed(0)
+tf.random.set_seed(0)
+
+# Force TensorFlow to use CPU
+import os
+os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
+
+# Leer el archivo CSV
+df = pd.read_csv('mean_flow.csv')
+
+# Obtener datos de flujo
+flow_data = df['Flow'].values
+
+# Definición de la función create_dataset
+def create_dataset(data, time_steps, future_steps):
+    X, y = [], []
+    for i in range(len(data) - time_steps - future_steps + 1):
+        X.append(data[i:i + time_steps])
+        y.append(data[i + time_steps:i + time_steps + future_steps])
+    return np.array(X), np.array(y)
+
+# Número de intentos
+num_attempts = 10
+n_inputs = 3  # Valor fijo de n_inputs
+n_outputs = 6  # Número fijo de salidas
+
+# Lista para almacenar los resultados de MSE
+mse_results = []
+
+for attempt in range(num_attempts):
+    # Generar conjunto de datos de entrada y salida
+    X, y = create_dataset(flow_data, n_inputs, n_outputs)
+
+    # Dividir datos en conjuntos de entrenamiento y prueba
+    train_size = len(flow_data) - n_inputs - n_outputs
+    X_train, X_test = X[:train_size], X[train_size:]
+    y_train, y_test = y[:train_size], y[train_size:]
+
+    # Construir el modelo de red neuronal
+    model = Sequential()
+    model.add(Dense(20, input_dim=n_inputs, activation='relu'))
+    model.add(Dropout(0.2))
+    model.add(Dense(20, activation='relu'))
+    model.add(Dense(n_outputs))
+    model.compile(optimizer=Adam(learning_rate=0.005), loss='mse')
+
+    # Entrenar el modelo
+    model.fit(X_train, y_train, epochs=150, batch_size=8, verbose=0)
+
+    # Hacer predicciones
+    test_predictions = model.predict(X_test)
+
+    # Calcular el error cuadrático medio
+    mse = mean(square(subtract(flow_data[-n_outputs:], test_predictions[0])))
+    mse_results.append(mse)
+
+    # Mostrar el MSE de cada intento
+    print(f"MSE del intento {attempt + 1}: {mse}")
+
+# Graficar los MSE
+plt.plot(range(1, num_attempts + 1), mse_results, marker='o', linestyle='-', color='b')
+plt.title('MSE por intento')
+plt.xlabel('Intento')
+plt.ylabel('MSE')
+plt.show()
+
+# Calcular el promedio de los MSE
+average_mse = np.mean(mse_results)
+print("Promedio de MSE para", num_attempts, "intentos con", n_inputs, "inputs:", round(average_mse, 2))
